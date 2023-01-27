@@ -4,6 +4,7 @@ output "function_apps" {
     name                = v.name
     id                  = v.id
     hostname            = v.default_hostname
+    object_id           = can(v.identity.principal_id) ? v.identity.principal_id : null
   } }
   description = "The Map of the Function Apps"
 }

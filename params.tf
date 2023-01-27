@@ -10,6 +10,7 @@ variable function_apps {
     storage_account_name              = string
     storage_account_access_key        = string
     service_plan_id                   = string
+    enable_system_identity            = optional(bool, false)
 
     dotnet_version                    = optional(string, "6.0")
     always_on                         = optional(bool, false)
