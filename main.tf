@@ -11,7 +11,7 @@ resource azurerm_linux_function_app this {
 
   site_config {
     always_on               = each.value.always_on
-    httpsOnly               = true
+    https_only              = true
     ftps_state              = "FtpsOnly"
     application_stack {
       dotnet_version    = each.value.dotnet_version
