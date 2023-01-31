@@ -8,10 +8,10 @@ resource azurerm_linux_function_app this {
   storage_account_name        = each.value.storage_account_name
   storage_account_access_key  = each.value.storage_account_access_key
   service_plan_id             = each.value.service_plan_id
+  https_only                  = true
 
   site_config {
     always_on               = each.value.always_on
-    https_only              = true
     ftps_state              = "FtpsOnly"
     application_stack {
       dotnet_version    = each.value.dotnet_version
