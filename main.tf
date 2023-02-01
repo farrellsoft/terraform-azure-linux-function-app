@@ -18,7 +18,7 @@ resource azurerm_linux_function_app this {
     }
   }
 
-  app_settings      = { for item in each.value.app_settings: item.name => item.value }
+  app_settings      = { for item in concat(each.value.app_settings, local.default_app_settings): item.name => item.value }
   dynamic "identity" {
     for_each          = local.system_identity_map[each.key] == false ? [] : [{}]
 
