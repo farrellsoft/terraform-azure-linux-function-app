@@ -1,4 +1,13 @@
 
+module "resource-naming" {
+  source  = "app.terraform.io/Farrellsoft/resource-naming/azure"
+  version = "0.0.2"
+  
+  application         = var.application
+  environment         = var.environment
+  instance_number     = var.instance_number
+}
+
 resource azurerm_linux_function_app this {
   name                        = "func-${var.function_app.application}"
   location                    = var.function_app.location
