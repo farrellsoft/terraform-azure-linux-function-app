@@ -1,9 +1,4 @@
 
-variable resource_group_name {
-  type        = string
-  description = "The name of the resource group in which to create the resources."
-}
-
 variable application {
   type = string
   validation {
@@ -34,6 +29,11 @@ variable location {
   description = "The location where the resources will be created."
 }
 
+variable resource_group_name {
+  type        = string
+  description = "The name of the resource group in which to create the resources."
+}
+
 variable storage_account {
   type = object({
     name        = string
@@ -50,7 +50,7 @@ variable service_plan_id {
 variable identity_type {
   type        = string
   description = "The type of identity to use for the function app."
-  default     = "SystemAssigned"
+  default     = null
 
   validation {
     condition     = can(regex("^(SystemAssigned|UserAssigned)$", var.identity_type))
@@ -70,13 +70,6 @@ variable application_insights_key {
   default     = null
 }
 
-variable dotnet_version {
-  type        = string
-  description = "The version of .NET to use for the function app."
- 
-  default     = "6.0"
-}
-
 variable app_settings {
   type        = list(object({
     name  = string
@@ -84,4 +77,10 @@ variable app_settings {
   }))
   description = "The list of application settings to use for the function app."
   default     = []
+}
+
+variable run_from_package {
+  type          = bool
+  description   = "Whether to use a run from package deployment for the function app."
+  default       = false
 }
