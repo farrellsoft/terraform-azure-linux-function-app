@@ -23,4 +23,7 @@ locals {
     type          = var.identity_type
     identity_ids  = var.identity_type == "SystemAssigned" ? null : var.user_managed_identities
   }
+
+  integrate_with_vnet = var.virtual_network_integration == null ? false : true
+  subnet_id           = local.integrate_with_vnet ? "${data.azurerm_virtual_network.this.0.id}/subnets/${var.virtual_network_integration.subnet_name}" : null
 }

@@ -1,8 +1,4 @@
 
-provider azurerm {
-  features {}
-}
-
 module "resource-naming" {
   source  = "app.terraform.io/Farrellsoft/resource-naming/azure"
   version = "0.0.7"
@@ -29,7 +25,9 @@ resource azurerm_linux_function_app this {
     }
   }
 
+  virtual_network_subnet_id     = local.integrate_with_vnet ? local.subnet_id : null
   app_settings      = { for item in local.final_app_settings: item.name => item.value }
+  
   dynamic "identity" {
     for_each = can(local.identity_block) ? [local.identity_block] : []
     content {

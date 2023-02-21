@@ -84,3 +84,13 @@ variable run_from_package {
   description   = "Whether to use a run from package deployment for the function app."
   default       = false
 }
+
+variable virtual_network_integration {
+  type                = object({
+    subnet_name                           = string
+    virtual_network_name                  = string
+    virtual_network_resource_group_name   = string
+  })
+  description        = "The virtual network integration to use for the function app."
+  default            =  null
+}
