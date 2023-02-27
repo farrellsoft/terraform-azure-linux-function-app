@@ -23,13 +23,22 @@ resource azurerm_linux_function_app this {
     application_stack {
       dotnet_version    = "6.0"
     }
+    vnet_route_all_enabled = local.integrate_with_vnet ? var.networking_config.route_all_enabled : null
+
+    dynamic "ip_restriction" {
+      for_each = var.networking_config.allow_public_access ? [] : [{}]
+      content {
+        action = "Deny"
+        name   = "Deny Public Access"
+      }
+    }
   }
 
   virtual_network_subnet_id     = local.integrate_with_vnet ? local.subnet_id : null
   app_settings      = { for item in local.final_app_settings: item.name => item.value }
   
   dynamic "identity" {
-    for_each = can(local.identity_block) ? [local.identity_block] : []
+    for_each = local.identity_block != null ? [local.identity_block] : []
     content {
       type          = identity.value.type
       identity_ids  = identity.value.identity_ids

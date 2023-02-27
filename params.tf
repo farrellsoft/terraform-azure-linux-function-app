@@ -53,8 +53,8 @@ variable identity_type {
   default     = null
 
   validation {
-    condition     = can(regex("^(SystemAssigned|UserAssigned)$", var.identity_type))
-    error_message = "${var.identity_type} must be either SystemAssigned or UserAssigned."
+    condition     = var.identity_type == null || can(regex("^(SystemAssigned|UserAssigned)$", var.identity_type))
+    error_message = "Identity Type must be either SystemAssigned or UserAssigned if set."
   }
 }
 
@@ -85,12 +85,18 @@ variable run_from_package {
   default       = false
 }
 
-variable virtual_network_integration {
-  type                = object({
-    subnet_name                           = string
-    virtual_network_name                  = string
-    virtual_network_resource_group_name   = string
+variable networking_config {
+  type            = object({
+    allow_public_access           = bool
+    virtial_network_configuration = optional(object({
+      subnet_name                           = string
+      virtual_network_name                  = string
+      virtual_network_resource_group_name   = string
+      route_all_enabled                     = optional(bool, false)
+    }), null)
   })
-  description        = "The virtual network integration to use for the function app."
-  default            =  null
+  description     = "The networking configuration to use for the function app."
+  default         = {
+    allow_public_access = true
+  }
 }

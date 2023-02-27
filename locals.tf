@@ -19,11 +19,11 @@ locals {
     local.application_insights_app_settings
   )
 
-  identity_block = can(var.identity_type) == false ? null : {
+  identity_block = var.identity_type == null ? null : {
     type          = var.identity_type
     identity_ids  = var.identity_type == "SystemAssigned" ? null : var.user_managed_identities
   }
 
-  integrate_with_vnet = var.virtual_network_integration == null ? false : true
-  subnet_id           = local.integrate_with_vnet ? "${data.azurerm_virtual_network.this.0.id}/subnets/${var.virtual_network_integration.subnet_name}" : null
+  integrate_with_vnet = can(var.networking_config.virtual_network_configuration) ? true : false
+  subnet_id           = local.integrate_with_vnet ? "${data.azurerm_virtual_network.this.0.id}/subnets/${var.networking_config.virtual_network_configuration.subnet_name}" : null
 }
