@@ -24,6 +24,11 @@ locals {
     identity_ids  = var.identity_type == "SystemAssigned" ? null : var.user_managed_identities
   }
 
-  integrate_with_vnet = can(var.networking_config.virtual_network_configuration) ? true : false
-  subnet_id           = local.integrate_with_vnet ? "${data.azurerm_virtual_network.this.0.id}/subnets/${var.networking_config.virtual_network_configuration.subnet_name}" : null
+  integrate_with_vnet = var.networking_config.virtual_network_configuration != null ? true : false
+  vnet_integration    = var.networking_config.virtual_network_configuration
+
+  vnet_rg             = local.integrate_with_vnet ? local.vnet_integration.virtual_network_resource_group_name : ""
+  vnet_name           = local.integrate_with_vnet ? local.vnet_integration.virtual_network_name : ""
+  vnet_subnet_name    = local.integrate_with_vnet ? local.vnet_integration.subnet_name : ""
+  vnet_subnet_id      = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${local.vnet_rg}/providers/Microsoft.Network/virtualNetworks/${local.vnet_name}/subnets/${local.vnet_subnet_name}"
 }

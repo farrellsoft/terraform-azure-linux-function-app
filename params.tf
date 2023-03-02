@@ -87,8 +87,8 @@ variable run_from_package {
 
 variable networking_config {
   type            = object({
-    allow_public_access           = bool
-    virtial_network_configuration = optional(object({
+    allow_public_access           = optional(bool, true)
+    virtual_network_configuration = optional(object({
       subnet_name                           = string
       virtual_network_name                  = string
       virtual_network_resource_group_name   = string

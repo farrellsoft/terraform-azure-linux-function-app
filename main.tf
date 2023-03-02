@@ -8,6 +8,8 @@ module "resource-naming" {
   instance_number     = var.instance_number
 }
 
+data "azurerm_client_config" "current" {}
+
 resource azurerm_linux_function_app this {
   name                        = module.resource-naming.function_app_name
   resource_group_name         = var.resource_group_name
@@ -23,7 +25,7 @@ resource azurerm_linux_function_app this {
     application_stack {
       dotnet_version    = "6.0"
     }
-    vnet_route_all_enabled = local.integrate_with_vnet ? var.networking_config.route_all_enabled : null
+    vnet_route_all_enabled = local.integrate_with_vnet ? local.vnet_integration.route_all_enabled : null
 
     dynamic "ip_restriction" {
       for_each = var.networking_config.allow_public_access ? [] : [{}]
@@ -34,8 +36,8 @@ resource azurerm_linux_function_app this {
     }
   }
 
-  virtual_network_subnet_id     = local.integrate_with_vnet ? local.subnet_id : null
-  app_settings      = { for item in local.final_app_settings: item.name => item.value }
+  virtual_network_subnet_id     = local.integrate_with_vnet ? local.vnet_subnet_id : null
+  app_settings                  = { for item in local.final_app_settings: item.name => item.value }
   
   dynamic "identity" {
     for_each = local.identity_block != null ? [local.identity_block] : []
