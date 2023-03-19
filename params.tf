@@ -85,6 +85,12 @@ variable run_from_package {
   default       = false
 }
 
+variable https_only {
+  type          = bool
+  description   = "Whether to use https only for the function app."
+  default       = true
+}
+
 variable networking_config {
   type            = object({
     allow_public_access           = optional(bool, true)
@@ -99,4 +105,15 @@ variable networking_config {
   default         = {
     allow_public_access = true
   }
+}
+
+variable private_endpoints {
+  type        = list(object({
+    subnet_id           = string
+    resource_group_name = string
+    purpose             = optional(string, "")
+    private_dns_zone_id   = string
+  }))
+  description = "The private endpoint to use for the function app."
+  default     = []
 }

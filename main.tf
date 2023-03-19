@@ -1,49 +1,86 @@
+terraform {
+  required_providers {
+    azapi = {
+      source = "Azure/azapi"
+    }
+  }
+}
 
+data azurerm_client_config current {}
 module "resource-naming" {
   source  = "app.terraform.io/Farrellsoft/resource-naming/azure"
-  version = "0.0.7"
+  version = "0.0.9"
   
   application         = var.application
   environment         = var.environment
   instance_number     = var.instance_number
 }
 
-data "azurerm_client_config" "current" {}
+locals {
+  resource_group_id     = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${var.resource_group_name}"
+}
 
-resource azurerm_linux_function_app this {
-  name                        = module.resource-naming.function_app_name
-  resource_group_name         = var.resource_group_name
-  location                    = var.location
-  
-  storage_account_name        = var.storage_account.name
-  storage_account_access_key  = var.storage_account.access_key
-  service_plan_id             = var.service_plan_id
-  https_only                  = true
+resource azapi_resource this {
+  type            = "Microsoft.Web/sites@2022-03-01"
+  name            = module.resource-naming.function_app_name
+  parent_id       = local.resource_group_id
+  location        = var.location
 
-  site_config {
-    always_on               = false
-    application_stack {
-      dotnet_version    = "6.0"
-    }
-    vnet_route_all_enabled = local.integrate_with_vnet ? local.vnet_integration.route_all_enabled : null
-
-    dynamic "ip_restriction" {
-      for_each = var.networking_config.allow_public_access ? [] : [{}]
-      content {
-        action = "Deny"
-        name   = "Deny Public Access"
+  body            = jsonencode({
+    kind            = "functionapp,linux"
+    properties      = {
+      httpsOnly                   = false
+      reserved                    = true
+      serverFarmId                = var.service_plan_id
+      #vnetName                    = var.networking_config.virtual_network_configuration.virtual_network_name
+      virtualNetworkSubnetId      = local.vnet_subnet_id
+      vnetContentShareEnabled     = true
+      siteConfig        = {
+        appSettings       = [
+          {
+            name  = "AzureWebJobsStorage",
+            value = "DefaultEndpointsProtocol=https;AccountName=${var.storage_account.name};AccountKey=${var.storage_account.access_key};EndpointSuffix=core.windows.net"
+          },
+          {
+            name  = "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+            value = "DefaultEndpointsProtocol=https;AccountName=${var.storage_account.name};AccountKey=${var.storage_account.access_key};EndpointSuffix=core.windows.net"
+          },
+          {
+            name  = "FUNCTIONS_WORKER_RUNTIME",
+            value = "dotnet"
+          },
+          {
+            name  = "FUNCTIONS_EXTENSION_VERSION",
+            value = "~4"
+          },
+          {
+            name  = "WEBSITE_CONTENTSHARE",
+            value = "privateapp-dev"
+          }
+        ],
+        linuxFxVersion  = "DOTNET|6.0"
       }
     }
-  }
-
-  virtual_network_subnet_id     = local.integrate_with_vnet ? local.vnet_subnet_id : null
-  app_settings                  = { for item in local.final_app_settings: item.name => item.value }
-  
-  dynamic "identity" {
-    for_each = local.identity_block != null ? [local.identity_block] : []
-    content {
-      type          = identity.value.type
-      identity_ids  = identity.value.identity_ids
-    }
-  }
+  })
 }
+
+#module "private-endpoint" {
+#  source            = "../terraform-azure-private-endpoint"
+#  count             = length(var.private_endpoints)
+#
+#  application         = var.application
+#  environment         = var.environment
+#  instance_number     = var.instance_number
+#  subnet_id           = var.private_endpoints[count.index].subnet_id
+#  resource_group_name = var.private_endpoints[count.index].resource_group_name
+#  resource_type       = "functionapp"
+#
+#  private_connections = {
+#    functionapp = {
+#      resource_id           = azurerm_linux_function_app.this.id
+#      subresource_names     = [ "sites" ]
+#      purpose               = var.private_endpoints[count.index].purpose
+#      private_dns_zone_id   = var.private_endpoints[count.index].private_dns_zone_id
+#    }
+#  }
+#}
